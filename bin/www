@@ -1,0 +1,86 @@
+#!/usr/bin/env node
+
+/**
+ * @module src/bin
+ * @description Network configuration for the application
+ */
+
+/**
+ * Module dependencies.
+ */
+const app = require('../src/app');
+const http = require('http');
+const serverConfig = require('config').get('server');
+
+const logger = require('../src/utils/logger')('bin/www');
+
+/**
+ * Create HTTP server.
+ */
+const server = http.createServer(app);
+server.listen(serverConfig.get('port'), serverConfig.get('address'));
+
+/**
+ * Add event listeners
+ */
+server.on('error', error => {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            logger.error(`${serverConfig.get('port')} need higher privileges`);
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            logger.error(`${serverConfig.get('port')} is already in use`);
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+});
+
+server.on('listening', async () => {
+    let setupOk = true;
+    const addrInfo = server.address();
+    logger.info(`Server listening on ${addrInfo.address}:${addrInfo.port}`);
+
+    try {
+        //await app.get('mysql').connect();
+        //await app.get('firebase').connect();
+    } catch (e) {
+        setupOk = false;
+    }
+
+    if (setupOk) {
+        app.emit('ready');
+    } else {
+        logger.error('Setup failed');
+        server.emit('shutdown');
+    }
+});
+
+server.on('shutdown', async () => {
+    app.emit('shutdown');
+    logger.info('Shutting down server');
+
+    try {
+        await app.get('mysql').close();
+        await app.get('firebase').close();
+    } catch (e) {}
+
+    server.close(() => {
+        logger.info('Server closing remaining connections');
+        process.exit();
+    });
+
+    setTimeout(() => {
+        logger.warn('Server forcing shutdown');
+        process.exit(1);
+    }, serverConfig.get('shutdownTimeout'));
+});
+
+process.on('SIGINT', () => server.emit('shutdown'));
+process.on('SIGTERM', () => server.emit('shutdown'));

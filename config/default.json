@@ -1,0 +1,33 @@
+{
+    "database": {
+        "mysql": {
+            "host": {
+                "proxy": "127.0.0.1",
+                "remote": "xxxx"
+            },
+            "user": "xxxx",
+            "password": "xxxx",
+            "dbName": "xxxx"
+        },
+        "firebase": {
+            "host": "xxxx",
+            "certificate": {
+                "type": "xxxx",
+                "project_id": "xxxx",
+                "private_key_id": "xxxx",
+                "private_key": "xxxx",
+                "client_email": "xxxx",
+                "client_id": "xxxx",
+                "auth_uri": "xxxx",
+                "token_uri": "xxxx",
+                "auth_provider_x509_cert_url": "xxxx",
+                "client_x509_cert_url": "xxxx"
+            }
+        }
+    },
+    "server": {
+        "port": 5000,
+        "address": "0.0.0.0",
+        "shutdownTimeout": 5000
+    }
+}
